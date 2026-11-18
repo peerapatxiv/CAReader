@@ -1,0 +1,16 @@
+# dependencies and build output
+node_modules/
+dist/
+
+# gateway exports contain internal configuration: never commit them
+*.rtf
+service*.xml
+
+# local-only tests that read the real export
+*.local.test.ts
+
+# working notes and tool scratch (contain details from the real export)
+.superpowers/
+docs/superpowers/
+
+.DS_Store

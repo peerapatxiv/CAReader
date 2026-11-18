@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<l7:List xmlns:l7="http://ns.l7tech.com/2010/04/gateway-management">
+    <l7:Name>SERVICE List</l7:Name>
+    <l7:Type>List</l7:Type>
+    <l7:Item>
+        <l7:Name>v2 Orders Item Details</l7:Name>
+        <l7:Id>aaa1</l7:Id>
+        <l7:Type>SERVICE</l7:Type>
+        <l7:Resource>
+            <l7:Service id="aaa1" version="9">
+                <l7:ServiceDetail folderId="f1" id="aaa1" version="9">
+                    <l7:Name>v2 Orders Item Details</l7:Name>
+                    <l7:Enabled>true</l7:Enabled>
+                    <l7:ServiceMappings>
+                        <l7:HttpMapping>
+                            <l7:UrlPattern>/v2/orders/item/details</l7:UrlPattern>
+                            <l7:Verbs>
+                                <l7:Verb>POST</l7:Verb>
+                            </l7:Verbs>
+                        </l7:HttpMapping>
+                    </l7:ServiceMappings>
+                    <l7:Properties>
+                        <l7:Property key="hasRouting">
+                            <l7:BooleanValue>true</l7:BooleanValue>
+                        </l7:Property>
+                        <l7:Property key="internal">
+                            <l7:BooleanValue>false</l7:BooleanValue>
+                        </l7:Property>
+                        <l7:Property key="policyRevision">
+                            <l7:LongValue>5</l7:LongValue>
+                        </l7:Property>
+                        <l7:Property key="soap">
+                            <l7:BooleanValue>false</l7:BooleanValue>
+                        </l7:Property>
+                        <l7:Property key="tracingEnabled">
+                            <l7:BooleanValue>true</l7:BooleanValue>
+                        </l7:Property>
+                    </l7:Properties>
+                </l7:ServiceDetail>
+                <l7:Resources>
+                    <l7:ResourceSet tag="policy">
+                        <l7:Resource type="policy" version="4">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;wsp:Policy xmlns:L7p="http://www.layer7tech.com/ws/policy" xmlns:wsp="http://schemas.xmlsoap.org/ws/2002/12/policy"&gt;
+    &lt;wsp:All wsp:Usage="Required"&gt;
+        &lt;L7p:CommentAssertion&gt;
+            &lt;L7p:Comment stringValue="บัญชีทดสอบ"/&gt;
+        &lt;/L7p:CommentAssertion&gt;
+        &lt;L7p:Include&gt;
+            &lt;L7p:PolicyGuid stringValue="g1"/&gt;
+            &lt;L7p:PolicyName stringValue="Error Checks"/&gt;
+        &lt;/L7p:Include&gt;
+        &lt;L7p:Encapsulated&gt;
+            &lt;L7p:EncapsulatedAssertionConfigName stringValue="Access Token Validator"/&gt;
+            &lt;L7p:Parameters mapValue="included"&gt;
+                &lt;L7p:entry&gt;
+                    &lt;L7p:key stringValue="given_scopes"/&gt;
+                    &lt;L7p:value stringValue="read,read-corporate"/&gt;
+                &lt;/L7p:entry&gt;
+            &lt;/L7p:Parameters&gt;
+        &lt;/L7p:Encapsulated&gt;
+        &lt;L7p:HttpRoutingAssertion&gt;
+            &lt;L7p:ProtectedServiceUrl stringValue="${backendHost}/api/x${request.url.query}"/&gt;
+        &lt;/L7p:HttpRoutingAssertion&gt;
+        &lt;L7p:HttpRoutingAssertion&gt;
+            &lt;L7p:ProtectedServiceUrl stringValue="${backendHost}/api/x${request.url.query}"/&gt;
+        &lt;/L7p:HttpRoutingAssertion&gt;
+    &lt;/wsp:All&gt;
+&lt;/wsp:Policy&gt;
+</l7:Resource>
+                    </l7:ResourceSet>
+                </l7:Resources>
+            </l7:Service>
+        </l7:Resource>
+    </l7:Item>
+    <l7:Item>
+        <l7:Name>Cards &amp; Points</l7:Name>
+        <l7:Id>bbb2</l7:Id>
+        <l7:Type>SERVICE</l7:Type>
+        <l7:Resource>
+            <l7:Service id="bbb2" version="2">
+                <l7:ServiceDetail folderId="f2" id="bbb2" version="2">
+                    <l7:Name>Cards &amp; Points</l7:Name>
+                    <l7:Enabled>false</l7:Enabled>
+                    <l7:ServiceMappings>
+                        <l7:HttpMapping>
+                            <l7:UrlPattern>/v1/cards*</l7:UrlPattern>
+                            <l7:Verbs>
+                                <l7:Verb>GET</l7:Verb>
+                                <l7:Verb>PUT</l7:Verb>
+                            </l7:Verbs>
+                        </l7:HttpMapping>
+                    </l7:ServiceMappings>
+                    <l7:Properties>
+                        <l7:Property key="soap">
+                            <l7:BooleanValue>true</l7:BooleanValue>
+                        </l7:Property>
+                    </l7:Properties>
+                </l7:ServiceDetail>
+                <l7:Resources>
+                    <l7:ResourceSet tag="policy">
+                        <l7:Resource type="policy" version="1">&lt;wsp:Policy&gt;&lt;wsp:All/&gt;&lt;/wsp:Policy&gt;</l7:Resource>
+                    </l7:ResourceSet>
+                </l7:Resources>
+            </l7:Service>
+        </l7:Resource>
+    </l7:Item>
+</l7:List>

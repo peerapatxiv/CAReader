@@ -7,6 +7,7 @@ Everything runs locally in the page: the file is never uploaded.
 
 Open `dist/index.html` (double-click works, no server needed), then drop `service.rtf` on the page.
 
+- **Call API / Upload file** toggle (Call API is the default): enter the export URL (GET), username and password and press **Load** (sent as Basic auth; URL and username are remembered, the password never is). Gateways usually block browser calls (CORS), so use it from `npm run dev`, which forwards the call through a local proxy. The proxy calls the gateway like `curl -k` (no certificate check), with `--data '{}'` and the User-Agent `Android/15.1.0;FastEasy/3.99.0/10999`; set `GATEWAY_USER_AGENT=...` to change it or `GATEWAY_STRICT_TLS=1` to check certificates.
 - **Overview**: totals (disabled, no scope check, no backend route, test APIs), a *Worth checking* list (likely scope typos, enabled test APIs, enabled APIs without a scope check), and breakdowns of required scopes, backend hosts, methods, shared policies and folders. Click anything to see those APIs.
 - **Services**: search name / URL / scope / backend / policy (⌘K, Ctrl K or `/`; matches are highlighted), filter by status, method, **required scope**, backend, shared policy, folder, **test APIs** (show only / hide) and flags; sort any column; ↑/↓ to move, Esc to close, `?` for shortcuts.
 - **Detail panel** (opens beside the table): the request route as three steps (gateway path, required scopes, backend), IDs, flags, shared policies used, and the full policy XML (copy or download).

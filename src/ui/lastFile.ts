@@ -3,7 +3,7 @@ import type { Service } from '../core/types';
 /** Remembers the last parsed export in IndexedDB so it can be reopened with one click. Never throws. */
 const DB = 'service-explorer', STORE = 'last', KEY = 'file';
 /** Bump when the Service shape changes, so copies saved by older versions are ignored. */
-export const SCHEMA = 3;
+export const SCHEMA = 4;
 export interface LastFile { fileName: string; savedAt: number; services: Service[]; schema?: number }
 
 function open(): Promise<IDBDatabase> {

@@ -540,3 +540,60 @@ body.resizing, body.resizing * { cursor: col-resize !important; user-select: non
 /* keep the table card's rounded corners: backdrop-filter on the sticky header escapes overflow clipping in Chrome */
 .grid { clip-path: inset(0 round var(--r-lg)); isolation: isolate; }
 .row.head { border-top-left-radius: var(--r-lg); border-top-right-radius: var(--r-lg); }
+
+/* ---------- generated scopes ---------- */
+.scopes.gen .scope { background: transparent; border: 1px dashed color-mix(in srgb, var(--coral) 55%, transparent); color: var(--coral-ink); }
+.scopes.gen .scope.hit { background: var(--hl); }
+.row .c-gen .scopes { flex-wrap: nowrap; }
+.services.with-panel .row .c-gen { display: none; }
+.route .gen-stop .node { background: var(--surface); border: 2px solid var(--coral); }
+.route .gen-stop .node::after { background: var(--coral); inset: 9px; }
+.route .gen-stop .scopes { margin: 2px 0 0; }
+.route .gen-stop .scope { font-size: 12.5px; padding: 7px 11px; }
+@media (max-width: 900px) { .row .c-gen { display: none; } }
+
+/* =========================================================
+   Table polish v3
+   ========================================================= */
+/* rows: inset hairline dividers, hidden next to hover/selection */
+.rows .row { position: absolute; transition: background .12s; }
+.rows .row::after { content: ""; position: absolute; left: 16px; right: 16px; bottom: 0; height: 1px; background: var(--line); opacity: .7; pointer-events: none; }
+.rows .row:hover::after, .rows .row.sel::after { opacity: 0; }
+.rows .row:hover { background: var(--tile); }
+.rows .row.sel { background: var(--coral-tint); box-shadow: inset 3px 0 0 var(--coral); }
+
+/* typography */
+.rows .row .name { font-size: 14px; font-weight: 500; letter-spacing: -.005em; }
+.rows .row .path { font-size: 12.5px; color: var(--ink-2); }
+.rows .row .path .sep { color: var(--faint); }
+
+/* disabled APIs: dim the whole row, keep status readable */
+.rows .row.off > :not(.c-status) { opacity: .5; }
+.rows .row.off .name { color: var(--ink); }
+
+/* url cell: clip + copy-on-hover */
+.row .c-url { position: relative; display: flex; align-items: center; }
+.cell-clip { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* floats over the end of the URL on hover, so it never takes space from the text */
+.row-copy { position: absolute; right: 0; top: 50%; transform: translateY(-50%); opacity: 0; pointer-events: none; transition: opacity .12s;
+  padding-left: 18px; background: linear-gradient(90deg, transparent, var(--tile) 16px); }
+.rows .row.sel .row-copy { background: linear-gradient(90deg, transparent, var(--coral-tint) 16px); }
+.rows .row:hover .row-copy, .rows .row:focus-within .row-copy { pointer-events: auto; }
+.rows .row:hover .row-copy, .rows .row:focus-within .row-copy { opacity: 1; }
+
+/* chip cells: chips keep their size; the last one that doesn't fit shrinks with "…"; "+N" always visible */
+.row .c-scopes, .row .c-gen { display: flex; align-items: center; gap: 4px; text-overflow: clip; }
+.c-scopes .scopes, .c-gen .scopes { flex: 0 1 auto; min-width: 0; overflow: hidden; flex-wrap: nowrap; }
+.c-scopes .scopes .scope, .c-gen .scopes .scope { flex: none; }
+.c-scopes .scopes .scope:last-child, .c-gen .scopes .scope:last-child { flex: 0 1 auto; min-width: 28px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.c-scopes > .scope.more, .c-gen > .scope.more { flex: none; }
+.scope.more.gen { border-style: dashed; border-color: color-mix(in srgb, var(--coral) 55%, transparent); color: var(--coral-ink); background: transparent; }
+
+/* placeholders */
+.empty-cell { color: var(--faint); }
+.no-check { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.no-check::before { content: ""; width: 6px; height: 6px; border-radius: 50%; border: 1.5px solid var(--faint); }
+
+/* column visibility must win over the cell layout rules above */
+.services.with-panel .row .c-url, .services.with-panel .row .c-gen { display: none; }
+@media (max-width: 900px) { .row .c-url, .row .c-scopes, .row .c-gen { display: none; } }

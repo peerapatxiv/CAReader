@@ -73,6 +73,20 @@ describe('parseAssertions', () => {
   });
 });
 
+describe('parameters', () => {
+  it('captures every key/value parameter of an encapsulated assertion', () => {
+    const a = parseAssertions(policy(`
+        <L7p:Encapsulated>
+            <L7p:EncapsulatedAssertionConfigName stringValue="OTK Token DB Storage New"/>
+            <L7p:Parameters mapValue="included">
+                <L7p:entry><L7p:key stringValue="expiration"/><L7p:value stringValue="300"/></L7p:entry>
+                <L7p:entry><L7p:key stringValue="scope"/><L7p:value stringValue="biometric-authen"/></L7p:entry>
+            </L7p:Parameters>
+        </L7p:Encapsulated>`));
+    expect(a[0].params).toEqual({ expiration: '300', scope: 'biometric-authen' });
+  });
+});
+
 describe('assertionLabel', () => {
   it('uses Policy Manager names where known, humanized type otherwise', () => {
     expect(assertionLabel('ComparisonAssertion')).toBe('Compare Expression');

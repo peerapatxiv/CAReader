@@ -20,7 +20,12 @@ function attrValues(policy: string, tag: string): string[] {
 /** Assertions that carry no behaviour and would only add noise to filters. */
 const NOISE = new Set(['CommentAssertion']);
 
-export function extractPolicyInfo(policyXml: string): Pick<Service, 'backends' | 'backendHosts' | 'includes' | 'scopes' | 'assertions' | 'disabledAssertions' | 'steps'> {
+/** Encapsulated assertion that stores an issued token; its `scope` parameter is the scope the token gets. */
+export const TOKEN_STORAGE = 'OTK Token DB Storage New';
+/** "${var}" stays whole; otherwise split on spaces/commas (OAuth scope lists are space-separated). */
+const splitScopes = (v: string) => (/^\$\{[^}]*\}$/.test(v.trim()) ? [v.trim()] : v.split(/[\s,]+/).filter(Boolean));
+
+export function extractPolicyInfo(policyXml: string): Pick<Service, 'backends' | 'backendHosts' | 'includes' | 'scopes' | 'generatedScopes' | 'assertions' | 'disabledAssertions' | 'steps'> {
   const backends = uniq(attrValues(policyXml, 'ProtectedServiceUrl'));
   const all = parseAssertions(policyXml).filter((a) => !NOISE.has(a.type));
   const on = all.filter((a) => a.enabled);
@@ -30,6 +35,7 @@ export function extractPolicyInfo(policyXml: string): Pick<Service, 'backends' |
     includes: uniq(attrValues(policyXml, 'PolicyName')),
     // only validators that actually run count as required scopes
     scopes: uniq(on.flatMap((a) => a.scopes ?? [])),
+    generatedScopes: uniq(on.filter((a) => a.kind === 'encapsulated' && a.label === TOKEN_STORAGE && a.params?.scope !== undefined).flatMap((a) => splitScopes(a.params!.scope))),
     assertions: uniq(on.filter((a) => a.kind !== 'include').map((a) => a.label)),
     disabledAssertions: uniq(all.filter((a) => !a.enabled && a.kind !== 'include').map((a) => a.label)),
     steps: all.map(({ kind, label, enabled }) => ({ kind, label, enabled })),

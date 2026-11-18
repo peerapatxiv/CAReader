@@ -1,5 +1,5 @@
 import type { Service } from '../core/types';
-import { NO_ROUTING, NO_SCOPE, facetCounts, ranked, type Query } from '../core/query';
+import { NO_ROUTING, NO_SCOPE, NO_TOKEN, facetCounts, ranked, type Query } from '../core/query';
 import { suspiciousScopes } from '../core/insights';
 import type { Action } from './store';
 import { Icon, fmt } from './bits';
@@ -185,6 +185,7 @@ export function Overview({ services, fileName, dispatch, onSearch }: {
         </section>
 
         <BarList wide title="All required scopes" icon="shield" entries={ranked(f.scopes)} mono onPick={(k) => drill({ scopes: [k] })} />
+        <BarList wide title="Generated scopes (tokens issued by OTK Token DB Storage New)" icon="key" entries={ranked(f.generated).filter(([k]) => k !== NO_TOKEN)} mono onPick={(k) => drill({ generated: [k] })} />
         <BarList title="Backend hosts" icon="server" entries={ranked(f.hosts).slice(0, 10)} mono onPick={(k) => drill({ hosts: [k] })} />
         <BarList title="Most-used shared policies" icon="layers" entries={ranked(f.includes).slice(0, 10)} onPick={(k) => drill({ includes: [k] })} />
         <BarList title="Most-used assertions" icon="grid" entries={ranked(f.assertions).slice(0, 10)} onPick={(k) => drill({ assertions: [k] })} />

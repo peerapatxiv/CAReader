@@ -21,6 +21,8 @@ export interface Service {
   includes: string[];
   /** required scopes: union of given_scopes on ENABLED encapsulated assertions (e.g. Access Token Validator) */
   scopes: string[];
+  /** scopes put on tokens this API issues: `scope` parameter of enabled "OTK Token DB Storage New" */
+  generatedScopes: string[];
   /** distinct labels of enabled assertions (encapsulated names + humanized built-in types; no includes/comments) */
   assertions: string[];
   /** distinct labels of assertions switched off in the policy */

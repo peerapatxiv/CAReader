@@ -86,6 +86,17 @@ export function DetailPanel({ s, dispatch }: { s: Service; dispatch: (a: Action)
                   <CopyButton text={b} label="Copy backend URL" />
                 </li>
               ))}
+              {s.generatedScopes.length > 0 && (
+                <li class="stop gen-stop">
+                  <span class="node" />
+                  <div>
+                    <div class="what">4. Issues a token with scope</div>
+                    <ScopeChips scopes={s.generatedScopes} onPick={(sc) => dispatch({ type: 'drill', query: { generated: [sc] } })} />
+                    <p class="hint">From the scope parameter of OTK Token DB Storage New. Select a scope to see every API that issues it.</p>
+                  </div>
+                  <CopyButton text={s.generatedScopes.join(' ')} label="Copy generated scopes" />
+                </li>
+              )}
             </ol>
             <dl class="kv">
               <dt>Service ID</dt><dd><span class="mono">{s.id}</span><CopyButton text={s.id} label="Copy service ID" /></dd>

@@ -11,6 +11,8 @@ export interface PolicyAssertion {
   enabled: boolean;
   /** given_scopes parameter (encapsulated assertions only), comma-split */
   scopes?: string[];
+  /** all key/value parameters of an encapsulated assertion */
+  params?: Record<string, string>;
 }
 
 const ACRONYMS: Record<string, string> = { Http: 'HTTP', Json: 'JSON', Xml: 'XML', Jwt: 'JWT', Saml: 'SAML', Ssl: 'SSL', Jdbc: 'JDBC', Mq: 'MQ', Xpath: 'XPath', Url: 'URL', Id: 'ID' };
@@ -48,7 +50,7 @@ const isAssertionTag = (tag: string) => /^L7p:[A-Z]/.test(tag) && tag !== 'L7p:E
 const TAG = /<(\/?)([A-Za-z][\w:.-]*)((?:[^>"']|"[^"]*"|'[^']*')*?)(\/?)>/g;
 const attr = (attrs: string, name: string) => attrs.match(new RegExp(`\\b${name}="([^"]*)"`))?.[1];
 
-interface Frame { tag: string; parent?: Frame; disabled: boolean; node?: PolicyAssertion; scopeKey?: boolean }
+interface Frame { tag: string; parent?: Frame; disabled: boolean; node?: PolicyAssertion; pendingKey?: string }
 
 /** Parse a Layer7 policy into its assertions (any depth), in document order. Never throws. */
 export function parseAssertions(policyXml: string): PolicyAssertion[] {
@@ -69,11 +71,13 @@ export function parseAssertions(policyXml: string): PolicyAssertion[] {
     if (owner?.node) {
       if (tag === 'L7p:EncapsulatedAssertionConfigName' && owner.node.kind === 'encapsulated') owner.node.label = decodeEntities(attr(attrs, 'stringValue') ?? owner.node.label);
       if (tag === 'L7p:PolicyName' && owner.node.kind === 'include') owner.node.label = decodeEntities(attr(attrs, 'stringValue') ?? owner.node.label);
-      if (tag === 'L7p:key') owner.scopeKey = attr(attrs, 'stringValue') === 'given_scopes';
-      else if (tag === 'L7p:value' && owner.scopeKey) {
-        owner.scopeKey = false;
+      if (tag === 'L7p:key') owner.pendingKey = decodeEntities(attr(attrs, 'stringValue') ?? '');
+      else if (tag === 'L7p:value' && owner.pendingKey !== undefined) {
+        const key = owner.pendingKey;
+        owner.pendingKey = undefined;
         const raw = decodeEntities(attr(attrs, 'stringValue') ?? '');
-        owner.node.scopes = [...new Set([...(owner.node.scopes ?? []), ...raw.split(',').map((s) => s.trim()).filter(Boolean)])];
+        (owner.node.params ??= {})[key] = raw;
+        if (key === 'given_scopes') owner.node.scopes = [...new Set([...(owner.node.scopes ?? []), ...raw.split(',').map((s) => s.trim()).filter(Boolean)])];
       }
     }
     const frame: Frame = { tag, parent, disabled: false };

@@ -35,6 +35,20 @@ describe('scopes', () => {
   it('ignores other keys', () => expect(extractPolicyInfo('<L7p:key stringValue="given_language"/><L7p:value stringValue="th"/>').scopes).toEqual([]));
 });
 
+const storage = (scope: string, disabled = false, name = 'OTK Token DB Storage New') =>
+  `<L7p:Encapsulated>${disabled ? '<L7p:Enabled booleanValue="false"/>' : ''}<L7p:EncapsulatedAssertionConfigName stringValue="${name}"/><L7p:Parameters mapValue="included"><L7p:entry><L7p:key stringValue="scope"/><L7p:value stringValue="${scope}"/></L7p:entry></L7p:Parameters></L7p:Encapsulated>`;
+
+describe('generated scopes', () => {
+  it('reads the scope parameter of enabled OTK Token DB Storage New assertions, distinct, in order', () =>
+    expect(extractPolicyInfo(pol(storage('read-corporate'), storage('biometric'), storage('read-corporate'))).generatedScopes).toEqual(['read-corporate', 'biometric']));
+  it('splits space- or comma-separated values', () =>
+    expect(extractPolicyInfo(pol(storage('read write,admin'))).generatedScopes).toEqual(['read', 'write', 'admin']));
+  it('keeps a runtime variable as-is', () => expect(extractPolicyInfo(pol(storage('${scope.result}'))).generatedScopes).toEqual(['${scope.result}']));
+  it('ignores disabled storage and other assertions', () =>
+    expect(extractPolicyInfo(pol(storage('a', true), storage('b', false, 'Something Else'))).generatedScopes).toEqual([]));
+  it('does not treat a generated scope as a required scope', () => expect(extractPolicyInfo(pol(storage('read'))).scopes).toEqual([]));
+});
+
 describe('hostOf', () => {
   it('handles literal urls', () => expect(hostOf('http://203.0.113.10:8080/x')).toBe('http://203.0.113.10:8080'));
   it('handles variable hosts', () => expect(hostOf('${backendHost}/api/a')).toBe('${backendHost}'));

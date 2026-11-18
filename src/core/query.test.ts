@@ -45,6 +45,13 @@ describe('filterServices', () => {
     expect(ids(filterServices(l, q({ assertions: ['Access Token Validator (disabled)'] })))).toEqual(['7']);
     expect(facetCounts(l).assertions.get('Access Token Validator (disabled)')).toBe(1);
   });
+  it('generated scopes filter (with "(issues no token)" token) and search', () => {
+    const l = [...list, svc({ id: '8', name: 'Token', generatedScopes: ['biometric'] })];
+    expect(ids(filterServices(l, q({ generated: ['biometric'] })))).toEqual(['8']);
+    expect(ids(filterServices(l, q({ generated: ['(issues no token)'] })))).toEqual(['1', '2', '3']);
+    expect(ids(filterServices(l, q({ text: 'biometric' })))).toEqual(['8']);
+    expect(facetCounts(l).generated.get('biometric')).toBe(1);
+  });
   it('text searches assertion names', () => expect(ids(filterServices(list, q({ text: 'token validator' })))).toEqual(['1']));
   it('text searches scopes', () => expect(ids(filterServices(list, q({ text: 'guest' })))).toEqual(['2']));
   it('folders and includes', () => {
@@ -78,7 +85,7 @@ describe('facetCounts', () => {
 
 describe('hash', () => {
   it('round-trips', () => {
-    const query = q({ text: 'a b&c', status: 'enabled', methods: ['GET'], hosts: ['${gw}'], scopes: ['read'], assertions: ['Access Token Validator'], flags: { soap: false } });
+    const query = q({ text: 'a b&c', status: 'enabled', methods: ['GET'], hosts: ['${gw}'], scopes: ['read'], assertions: ['Access Token Validator'], generated: ['biometric'], flags: { soap: false } });
     expect(hashToQuery(queryToHash(query, 'id1'))).toEqual({ q: query, selectedId: 'id1' });
   });
   it('empty hash gives empty query', () => expect(hashToQuery('')).toEqual({ q: emptyQuery, selectedId: undefined }));

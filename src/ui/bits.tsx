@@ -38,20 +38,23 @@ export function Icon({ name, label }: { name: keyof typeof P | string; label?: s
 }
 
 /** Scope chips; optional max shows "+N" for the rest. onPick makes them buttons. */
-export function ScopeChips({ scopes, max, onPick }: { scopes: string[]; max?: number; onPick?: (s: string) => void }) {
+export function ScopeChips({ scopes, max, onPick, gen }: { scopes: string[]; max?: number; onPick?: (s: string) => void; gen?: boolean }) {
   const terms = useContext(Terms);
   const hit = (s: string) => terms.some((t) => s.toLowerCase().includes(t));
   // when searching, show matching scopes first so the reason for the match is visible
   const ordered = terms.length ? [...scopes.filter(hit), ...scopes.filter((s) => !hit(s))] : scopes;
   const shown = max ? ordered.slice(0, max) : ordered;
   const rest = scopes.length - shown.length;
+  // "+N" sits outside the chip group so a fade on overflowing chips never hides it
   return (
-    <span class="scopes">
-      {shown.map((s) => (onPick
-        ? <button key={s} class={`scope${hit(s) ? ' hit' : ''}`} onClick={() => onPick(s)} title={`Show services requiring ${s}`}>{s}</button>
-        : <span key={s} class={`scope${hit(s) ? ' hit' : ''}`}>{s}</span>))}
-      {rest > 0 && <span class="scope more">+{rest}</span>}
-    </span>
+    <>
+      <span class={`scopes${gen ? ' gen' : ''}${rest > 0 ? ' has-more' : ''}`}>
+        {shown.map((s) => (onPick
+          ? <button key={s} class={`scope${hit(s) ? ' hit' : ''}`} onClick={() => onPick(s)} title={`Show APIs with ${s}`}>{s}</button>
+          : <span key={s} class={`scope${hit(s) ? ' hit' : ''}`}>{s}</span>))}
+      </span>
+      {rest > 0 && <span class={`scope more${gen ? ' gen' : ''}`}>+{rest}</span>}
+    </>
   );
 }
 

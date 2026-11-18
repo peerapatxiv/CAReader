@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Service } from '../core/types';
-import { hostsOf, type Sort, type SortKey } from '../core/query';
+import type { Sort, SortKey } from '../core/query';
 import type { Action } from './store';
-import { Icon, Mark, MethodBadge, RoutePath, ScopeChips } from './bits';
+import { CopyButton, Icon, Mark, MethodBadge, RoutePath, ScopeChips } from './bits';
 import { useScrollBox, visibleRange } from './useVirtual';
 import { DEFAULT_WIDTHS, STORAGE_KEY, clampWidth, gridTemplate, parseWidths, totalWidth, visibleCols, type ColKey, type Widths } from './columns';
 
@@ -13,7 +13,7 @@ const COLS: { key: SortKey | null; col?: ColKey; label: string; cls?: string }[]
   { key: 'urlPattern', col: 'url', label: 'URL pattern', cls: 'c-url' },
   { key: null, col: 'methods', label: 'Methods', cls: 'c-methods' },
   { key: 'scopes', col: 'scopes', label: 'Required scopes', cls: 'c-scopes' },
-  { key: 'backendHosts', col: 'host', label: 'Backend', cls: 'c-host' },
+  { key: null, col: 'generated', label: 'Generates scope', cls: 'c-gen' },
 ];
 
 const loadWidths = (): Widths => { try { return parseWidths(localStorage.getItem(STORAGE_KEY)); } catch { return { ...DEFAULT_WIDTHS }; } };
@@ -110,12 +110,14 @@ export function ServiceTable({ rows, sort, selectedId, dispatch, onClear, withPa
               onClick={() => dispatch({ type: 'select', id: s.id })}>
               <div role="gridcell" class="c-status"><span class={`dot${s.enabled ? '' : ' off'}`} title={s.enabled ? 'Enabled' : 'Disabled'} /><span class="sr-only">{s.enabled ? 'Enabled' : 'Disabled'}</span></div>
               <div role="gridcell" class="name" title={s.name}>{s.test && <span class="tag-test" title="Test API"><Icon name="flask" />Test</span>}<Mark text={s.name} /><small>{s.urlPattern}</small></div>
-              <div role="gridcell" class="c-url"><RoutePath path={s.urlPattern} /></div>
-              <div role="gridcell" class="c-methods" title={s.verbs.join(', ')}>{s.verbs.map((v) => <MethodBadge key={v} verb={v} short />)}</div>
+              <div role="gridcell" class="c-url"><span class="cell-clip"><RoutePath path={s.urlPattern} /></span><span class="row-copy"><CopyButton text={s.urlPattern} label="Copy URL pattern" /></span></div>
+              <div role="gridcell" class="c-methods" title={s.verbs.join(', ')}>{s.verbs.length ? s.verbs.map((v) => <MethodBadge key={v} verb={v} short />) : <span class="empty-cell">—</span>}</div>
               <div role="gridcell" class="c-scopes" title={s.scopes.length ? s.scopes.join(', ') : 'No scope check'}>
-                {s.scopes.length ? <ScopeChips scopes={s.scopes} max={2} /> : <span class="muted none">none</span>}
+                {s.scopes.length ? <ScopeChips scopes={s.scopes} max={2} /> : <span class="no-check">No check</span>}
               </div>
-              <div role="gridcell" class="c-host host" title={s.backends.join('\n')}>{hostsOf(s).join(', ')}</div>
+              <div role="gridcell" class="c-gen" title={s.generatedScopes.length ? `Issues tokens with: ${s.generatedScopes.join(', ')}` : 'Does not issue tokens'}>
+                {s.generatedScopes.length ? <ScopeChips scopes={s.generatedScopes} max={2} gen /> : <span class="empty-cell">—</span>}
+              </div>
             </div>
           );
         })}

@@ -1,16 +1,16 @@
 /** Resizable table columns: widths in px for each resizable column. */
-export type ColKey = 'name' | 'url' | 'methods' | 'scopes' | 'host';
+export type ColKey = 'name' | 'url' | 'methods' | 'scopes' | 'generated';
 export type Widths = Record<ColKey, number>;
 
-export const DEFAULT_WIDTHS: Widths = { name: 260, url: 280, methods: 236, scopes: 240, host: 180 };
+export const DEFAULT_WIDTHS: Widths = { name: 260, url: 270, methods: 236, scopes: 250, generated: 200 };
 export const MIN_W = 80, MAX_W = 900;
 const STATUS = 24, GAP = 12, PAD = 16, MARGIN = 8;
 export const STORAGE_KEY = 'service-explorer.columns';
 
 export const clampWidth = (w: number) => Math.round(Math.min(MAX_W, Math.max(MIN_W, w)));
 
-/** Columns shown, in order. In split view (detail panel open) URL and backend are hidden. */
-export const visibleCols = (withPanel: boolean): ColKey[] => (withPanel ? ['name', 'methods', 'scopes'] : ['name', 'url', 'methods', 'scopes', 'host']);
+/** Columns shown, in order. In split view (detail panel open) the URL column is hidden. */
+export const visibleCols = (withPanel: boolean): ColKey[] => (withPanel ? ['name', 'methods', 'scopes'] : ['name', 'url', 'methods', 'scopes', 'generated']);
 
 /** CSS grid-template-columns: fixed px for all but the last column, which can grow to fill. */
 export function gridTemplate(w: Widths, withPanel: boolean): string {

@@ -6,6 +6,8 @@ export const FLAGS: Flag[] = ['test', 'soap', 'internal', 'tracing'];
 export const NO_ROUTING = '(no routing)';
 /** pseudo scope for services that never validate a token's scopes */
 export const NO_SCOPE = '(no scope check)';
+/** pseudo generated scope for APIs that don't issue tokens */
+export const NO_TOKEN = '(issues no token)';
 
 export interface Query {
   text: string;
@@ -16,10 +18,11 @@ export interface Query {
   includes: string[];
   scopes: string[];
   assertions: string[];
+  generated: string[];
   flags: Partial<Record<Flag, boolean>>;
 }
 
-export const emptyQuery: Query = { text: '', status: 'all', methods: [], hosts: [], folders: [], includes: [], scopes: [], assertions: [], flags: {} };
+export const emptyQuery: Query = { text: '', status: 'all', methods: [], hosts: [], folders: [], includes: [], scopes: [], assertions: [], generated: [], flags: {} };
 
 export type SortKey = 'name' | 'urlPattern' | 'enabled' | 'scopes' | 'backendHosts' | 'policyRevision';
 export interface Sort { key: SortKey; dir: 'asc' | 'desc' }
@@ -28,7 +31,7 @@ const hay = new WeakMap<Service, string>();
 const haystack = (s: Service) => {
   let h = hay.get(s);
   if (h === undefined) {
-    h = [s.name, s.urlPattern, s.id, ...s.backends, ...s.includes, ...s.scopes, ...s.assertions].join('\n').toLowerCase();
+    h = [s.name, s.urlPattern, s.id, ...s.backends, ...s.includes, ...s.scopes, ...s.generatedScopes, ...s.assertions].join('\n').toLowerCase();
     hay.set(s, h);
   }
   return h;
@@ -36,6 +39,7 @@ const haystack = (s: Service) => {
 
 export const hostsOf = (s: Service) => (s.backendHosts.length ? s.backendHosts : [NO_ROUTING]);
 export const scopesOf = (s: Service) => (s.scopes.length ? s.scopes : [NO_SCOPE]);
+export const generatedOf = (s: Service) => (s.generatedScopes.length ? s.generatedScopes : [NO_TOKEN]);
 /** Assertion filter values: enabled names, plus switched-off ones as "<name> (disabled)". */
 export const assertionsOf = (s: Service) => [...s.assertions, ...s.disabledAssertions.map((a) => `${a} (disabled)`)];
 const anyIn = (have: string[], want: string[]) => want.length === 0 || want.some((w) => have.includes(w));
@@ -52,6 +56,7 @@ export function filterServices(list: Service[], q: Query): Service[] {
     if (!anyIn(s.includes, q.includes)) return false;
     if (!anyIn(scopesOf(s), q.scopes)) return false;
     if (!anyIn(assertionsOf(s), q.assertions)) return false;
+    if (!anyIn(generatedOf(s), q.generated)) return false;
     for (const f of flags) if (s[f] !== q.flags[f]) return false;
     if (terms.length) {
       const h = haystack(s);
@@ -81,6 +86,7 @@ export interface Facets {
   includes: Map<string, number>;
   scopes: Map<string, number>;
   assertions: Map<string, number>;
+  generated: Map<string, number>;
   enabled: number;
   test: number;
   disabled: number;
@@ -89,7 +95,7 @@ export interface Facets {
 const inc = (m: Map<string, number>, k: string) => m.set(k, (m.get(k) ?? 0) + 1);
 
 export function facetCounts(list: Service[]): Facets {
-  const f: Facets = { methods: new Map(), hosts: new Map(), folders: new Map(), includes: new Map(), scopes: new Map(), assertions: new Map(), enabled: 0, test: 0, disabled: 0 };
+  const f: Facets = { methods: new Map(), hosts: new Map(), folders: new Map(), includes: new Map(), scopes: new Map(), assertions: new Map(), generated: new Map(), enabled: 0, test: 0, disabled: 0 };
   for (const s of list) {
     s.verbs.forEach((v) => inc(f.methods, v));
     hostsOf(s).forEach((h) => inc(f.hosts, h));
@@ -97,6 +103,7 @@ export function facetCounts(list: Service[]): Facets {
     s.includes.forEach((i) => inc(f.includes, i));
     scopesOf(s).forEach((x) => inc(f.scopes, x));
     assertionsOf(s).forEach((x) => inc(f.assertions, x));
+    generatedOf(s).forEach((x) => inc(f.generated, x));
     if (s.enabled) f.enabled++; else f.disabled++;
     if (s.test) f.test++;
   }
@@ -110,7 +117,7 @@ export function queryToHash(q: Query, selectedId?: string): string {
   const p = new URLSearchParams();
   if (q.text) p.set('q', q.text);
   if (q.status !== 'all') p.set('status', q.status);
-  for (const k of ['methods', 'hosts', 'folders', 'includes', 'scopes', 'assertions'] as const) q[k].forEach((v) => p.append(k, v));
+  for (const k of ['methods', 'hosts', 'folders', 'includes', 'scopes', 'assertions', 'generated'] as const) q[k].forEach((v) => p.append(k, v));
   for (const f of FLAGS) if (q.flags[f] !== undefined) p.set(f, String(q.flags[f]));
   if (selectedId) p.set('id', selectedId);
   return p.toString();
@@ -125,7 +132,7 @@ export function hashToQuery(hash: string): { q: Query; selectedId?: string } {
     q: {
       text: p.get('q') ?? '',
       status: st === 'enabled' || st === 'disabled' ? st : 'all',
-      methods: p.getAll('methods'), hosts: p.getAll('hosts'), folders: p.getAll('folders'), includes: p.getAll('includes'), scopes: p.getAll('scopes'), assertions: p.getAll('assertions'),
+      methods: p.getAll('methods'), hosts: p.getAll('hosts'), folders: p.getAll('folders'), includes: p.getAll('includes'), scopes: p.getAll('scopes'), assertions: p.getAll('assertions'), generated: p.getAll('generated'),
       flags,
     },
     selectedId: p.get('id') ?? undefined,

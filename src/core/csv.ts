@@ -1,6 +1,6 @@
 import type { Service } from './types';
 
-const COLS = ['id', 'name', 'enabled', 'urlPattern', 'verbs', 'scopes', 'assertions', 'backends', 'includes', 'folderId', 'policyRevision'] as const;
+const COLS = ['id', 'name', 'enabled', 'urlPattern', 'verbs', 'scopes', 'generatedScopes', 'assertions', 'backends', 'includes', 'folderId', 'policyRevision'] as const;
 
 const cell = (v: unknown): string => {
   const s = Array.isArray(v) ? v.join('; ') : String(v);

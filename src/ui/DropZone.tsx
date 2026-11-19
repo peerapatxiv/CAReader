@@ -25,7 +25,7 @@ export function DropZone({ onLoaded }: { onLoaded: (s: Service[], fileName: stri
   const [error, setError] = useState<string | null>(null);
   const [last, setLast] = useState<LastFileMeta | undefined>();
   const input = useRef<HTMLInputElement>(null);
-  const [mode, setModeState] = useState<Mode>(() => (store.get('se.mode') === 'api' ? 'api' : 'file'));
+  const [mode, setModeState] = useState<Mode>(() => (store.get('se.mode') === 'file' ? 'file' : 'api'));
   const [apiUrl, setApiUrl] = useState(() => store.get('se.apiUrl'));
   const [user, setUser] = useState(() => store.get('se.apiUser'));
   const [pass, setPass] = useState('');
@@ -99,8 +99,8 @@ export function DropZone({ onLoaded }: { onLoaded: (s: Service[], fileName: stri
         </header>
 
         <div class="seg" role="tablist" aria-label="Source">
-          <button role="tab" aria-selected={mode === 'file'} onClick={() => setMode('file')} disabled={!!progress}>Upload file</button>
           <button role="tab" aria-selected={mode === 'api'} onClick={() => setMode('api')} disabled={!!progress}>REST Man API</button>
+          <button role="tab" aria-selected={mode === 'file'} onClick={() => setMode('file')} disabled={!!progress}>Upload file</button>
         </div>
 
         {mode === 'file' ? (

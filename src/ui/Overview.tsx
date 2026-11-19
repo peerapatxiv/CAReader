@@ -6,16 +6,26 @@ import { Icon, fmt } from './bits';
 
 type Drill = (q: Partial<Query>) => void;
 
-/** Ring gauge: black disc with a coral arc (share) — mirrors the reference "growth rate" dial. */
+/** Ring gauge: dark disc with a thin accent arc (share), big light numeral and a small tracked label. */
 function Ring({ pct, label }: { pct: number; label: string }) {
-  const r = 52, c = 2 * Math.PI * r;
+  const r = 56, c = 2 * Math.PI * r, v = Math.round(pct);
+  const ticks = Array.from({ length: 60 }, (_, i) => i * 6);
   return (
-    <svg class="ring" viewBox="0 0 140 140" role="img" aria-label={`${Math.round(pct)}% ${label}`}>
-      <circle cx="70" cy="70" r="68" class="ring-disc" />
+    <svg class="ring" viewBox="0 0 140 140" role="img" aria-label={`${v}% ${label}`}>
+      <defs>
+        <radialGradient id="ring-disc-g" cx="50%" cy="35%" r="70%">
+          <stop offset="0%" class="ring-disc-hi" />
+          <stop offset="100%" class="ring-disc-lo" />
+        </radialGradient>
+      </defs>
+      <circle cx="70" cy="70" r="70" fill="url(#ring-disc-g)" />
+      <g class="ring-ticks">
+        {ticks.map((a) => <line key={a} x1="70" y1="20" x2="70" y2={a % 30 === 0 ? 25 : 23} transform={`rotate(${a} 70 70)`} />)}
+      </g>
       <circle cx="70" cy="70" r={r} class="ring-track" />
       <circle cx="70" cy="70" r={r} class="ring-arc" stroke-dasharray={`${(pct / 100) * c} ${c}`} transform="rotate(-90 70 70)" />
-      <text x="70" y="70" class="ring-v">{Math.round(pct)}%</text>
-      <text x="70" y="90" class="ring-l">{label}</text>
+      <text x="70" y="78" class="ring-v">{v}<tspan class="ring-pct" dx="1.5">%</tspan></text>
+      <text x="70" y="95" class="ring-l">{label}</text>
     </svg>
   );
 }

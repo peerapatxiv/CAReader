@@ -19,10 +19,11 @@ export interface Query {
   scopes: string[];
   assertions: string[];
   generated: string[];
+  urlIssues: string[];
   flags: Partial<Record<Flag, boolean>>;
 }
 
-export const emptyQuery: Query = { text: '', status: 'all', methods: [], hosts: [], folders: [], includes: [], scopes: [], assertions: [], generated: [], flags: {} };
+export const emptyQuery: Query = { text: '', status: 'all', methods: [], hosts: [], folders: [], includes: [], scopes: [], assertions: [], generated: [], urlIssues: [], flags: {} };
 
 export type SortKey = 'name' | 'urlPattern' | 'enabled' | 'scopes' | 'backendHosts' | 'policyRevision';
 export interface Sort { key: SortKey; dir: 'asc' | 'desc' }
@@ -57,6 +58,7 @@ export function filterServices(list: Service[], q: Query): Service[] {
     if (!anyIn(scopesOf(s), q.scopes)) return false;
     if (!anyIn(assertionsOf(s), q.assertions)) return false;
     if (!anyIn(generatedOf(s), q.generated)) return false;
+    if (!anyIn(s.urlIssues, q.urlIssues)) return false;
     for (const f of flags) if (s[f] !== q.flags[f]) return false;
     if (terms.length) {
       const h = haystack(s);
@@ -87,6 +89,7 @@ export interface Facets {
   scopes: Map<string, number>;
   assertions: Map<string, number>;
   generated: Map<string, number>;
+  urlIssues: Map<string, number>;
   enabled: number;
   test: number;
   disabled: number;
@@ -95,7 +98,7 @@ export interface Facets {
 const inc = (m: Map<string, number>, k: string) => m.set(k, (m.get(k) ?? 0) + 1);
 
 export function facetCounts(list: Service[]): Facets {
-  const f: Facets = { methods: new Map(), hosts: new Map(), folders: new Map(), includes: new Map(), scopes: new Map(), assertions: new Map(), generated: new Map(), enabled: 0, test: 0, disabled: 0 };
+  const f: Facets = { methods: new Map(), hosts: new Map(), folders: new Map(), includes: new Map(), scopes: new Map(), assertions: new Map(), generated: new Map(), urlIssues: new Map(), enabled: 0, test: 0, disabled: 0 };
   for (const s of list) {
     s.verbs.forEach((v) => inc(f.methods, v));
     hostsOf(s).forEach((h) => inc(f.hosts, h));
@@ -104,6 +107,7 @@ export function facetCounts(list: Service[]): Facets {
     scopesOf(s).forEach((x) => inc(f.scopes, x));
     assertionsOf(s).forEach((x) => inc(f.assertions, x));
     generatedOf(s).forEach((x) => inc(f.generated, x));
+    s.urlIssues.forEach((x) => inc(f.urlIssues, x));
     if (s.enabled) f.enabled++; else f.disabled++;
     if (s.test) f.test++;
   }
@@ -117,7 +121,7 @@ export function queryToHash(q: Query, selectedId?: string): string {
   const p = new URLSearchParams();
   if (q.text) p.set('q', q.text);
   if (q.status !== 'all') p.set('status', q.status);
-  for (const k of ['methods', 'hosts', 'folders', 'includes', 'scopes', 'assertions', 'generated'] as const) q[k].forEach((v) => p.append(k, v));
+  for (const k of ['methods', 'hosts', 'folders', 'includes', 'scopes', 'assertions', 'generated', 'urlIssues'] as const) q[k].forEach((v) => p.append(k, v));
   for (const f of FLAGS) if (q.flags[f] !== undefined) p.set(f, String(q.flags[f]));
   if (selectedId) p.set('id', selectedId);
   return p.toString();
@@ -132,7 +136,7 @@ export function hashToQuery(hash: string): { q: Query; selectedId?: string } {
     q: {
       text: p.get('q') ?? '',
       status: st === 'enabled' || st === 'disabled' ? st : 'all',
-      methods: p.getAll('methods'), hosts: p.getAll('hosts'), folders: p.getAll('folders'), includes: p.getAll('includes'), scopes: p.getAll('scopes'), assertions: p.getAll('assertions'), generated: p.getAll('generated'),
+      methods: p.getAll('methods'), hosts: p.getAll('hosts'), folders: p.getAll('folders'), includes: p.getAll('includes'), scopes: p.getAll('scopes'), assertions: p.getAll('assertions'), generated: p.getAll('generated'), urlIssues: p.getAll('urlIssues'),
       flags,
     },
     selectedId: p.get('id') ?? undefined,

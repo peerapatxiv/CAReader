@@ -5,6 +5,8 @@ export interface Service {
   version: number;
   enabled: boolean;
   urlPattern: string;
+  /** URL pattern problems (labels from URL_ISSUES), see markUrlIssues */
+  urlIssues: string[];
   verbs: string[];
   soap: boolean;
   internal: boolean;

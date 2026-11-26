@@ -46,7 +46,7 @@ export function App() {
   const facets = useMemo(() => {
     const without = (p: Partial<Query>) => facetCounts(filterServices(services, { ...query, ...p }));
     const out = { status: without({ status: 'all' }) } as Record<FacetKey | 'status', ReturnType<typeof facetCounts>>;
-    for (const k of ['methods', 'scopes', 'generated', 'assertions', 'hosts', 'folders', 'includes'] as FacetKey[]) out[k] = without({ [k]: [] });
+    for (const k of ['methods', 'scopes', 'generated', 'assertions', 'hosts', 'folders', 'includes', 'urlIssues'] as FacetKey[]) out[k] = without({ [k]: [] });
     return out;
   }, [services, query]);
   const selected = useMemo(() => services.find((s) => s.id === selectedId), [services, selectedId]);

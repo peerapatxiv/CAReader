@@ -1,11 +1,11 @@
 import { ParseError, type Service } from './types';
 import { decodeEntities } from './xml';
 import { extractPolicyInfo } from './policy';
-import { isTestApi } from './insights';
+import { isTestApi, markUrlIssues } from './insights';
 
-const tagText = (src: string, tag: string): string | undefined => {
+const tagText = (src: string, tag: string, raw = false): string | undefined => {
   const m = src.match(new RegExp(`<l7:${tag}(?:\\s[^>]*)?>([\\s\\S]*?)</l7:${tag}>`));
-  return m ? decodeEntities(m[1].trim()) : undefined;
+  return m ? decodeEntities(raw ? m[1] : m[1].trim()) : undefined;
 };
 
 const attr = (openTag: string, name: string): string | undefined => {
@@ -30,7 +30,8 @@ function parseItem(item: string): Service {
   const name = tagText(detail.slice(detail.indexOf('<l7:ServiceDetail')), 'Name') ?? tagText(item, 'Name') ?? '';
   const id = attr(detailOpen, 'id') ?? tagText(item, 'Id') ?? '';
 
-  const urlPattern = tagText(detail, 'UrlPattern') ?? '';
+  // untrimmed: stray whitespace in the pattern is itself an issue (see urlPatternIssues)
+  const urlPattern = tagText(detail, 'UrlPattern', true) ?? '';
   return {
     id,
     name,
@@ -38,6 +39,7 @@ function parseItem(item: string): Service {
     version: Number(attr(detailOpen, 'version') ?? 0),
     enabled: tagText(detail, 'Enabled') === 'true',
     urlPattern,
+    urlIssues: [],
     test: isTestApi(name, urlPattern),
     verbs,
     soap: properties.soap === 'true',
@@ -69,5 +71,5 @@ export function parseServices(xml: string, onProgress?: (done: number, total: nu
     out.push(parseItem(c));
     if (onProgress && ((i + 1) % 50 === 0 || i + 1 === chunks.length)) onProgress(i + 1, chunks.length);
   });
-  return out;
+  return markUrlIssues(out);
 }

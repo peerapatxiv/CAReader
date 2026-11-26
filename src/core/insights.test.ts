@@ -29,3 +29,32 @@ describe('isTestApi', () => {
     ['Attestation', '/v1/attest'], ['Contest', '/v1/contest'], ['Orders', '/v2/orders/item/details'], ['Epoch', '/v1/epoch'],
   ])('%s is not a test API', (n, u) => expect(isTestApi(n, u)).toBe(false));
 });
+
+import { urlPatternIssues, markUrlIssues, URL_ISSUES } from './insights';
+import { svc } from './testutil';
+describe('urlPatternIssues', () => {
+  it.each([
+    ['/v1/mutualfunds/cancel', []],
+    ['/v1/funds/*', []],
+    ['', ['empty']],
+    ['  ', ['empty', 'whitespace']],
+    ['/v1/mutual funds/details', ['whitespace']],
+    [' /v1/funds', ['whitespace']],
+    ['/v1/funds ', ['whitespace']],
+    ['/v1/funds\t', ['whitespace']],
+    ['v1/funds', ['no-leading-slash']],
+    ['/v1//funds', ['double-slash']],
+    ['/v1/funds/', ['trailing-slash']],
+    ['/v1/funds"', ['odd-chars']],
+    ['/Test_JDBC', ['uppercase']],
+  ])('%j -> %j', (p, want) => expect(urlPatternIssues(p)).toEqual(want));
+});
+describe('markUrlIssues', () => {
+  it('flags enabled APIs that share a pattern, ignoring disabled ones', () => {
+    const list = markUrlIssues([
+      svc({ id: 'a', urlPattern: '/v1/x' }), svc({ id: 'b', urlPattern: '/v1/x' }),
+      svc({ id: 'c', urlPattern: '/v1/y' }), svc({ id: 'd', urlPattern: '/v1/y', enabled: false }),
+    ]);
+    expect(list.map((s) => s.urlIssues)).toEqual([[URL_ISSUES.duplicate], [URL_ISSUES.duplicate], [], []]);
+  });
+});

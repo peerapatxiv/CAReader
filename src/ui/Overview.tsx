@@ -1,6 +1,6 @@
 import type { Service } from '../core/types';
 import { NO_ROUTING, NO_SCOPE, NO_TOKEN, facetCounts, ranked, type Query } from '../core/query';
-import { suspiciousScopes } from '../core/insights';
+import { suspiciousScopes, URL_ISSUES } from '../core/insights';
 import type { Action } from './store';
 import { Icon, fmt } from './bits';
 
@@ -104,6 +104,17 @@ export function Overview({ services, fileName, dispatch, onSearch }: {
   const scopeList = ranked(f.scopes).filter(([k]) => k !== NO_SCOPE);
 
   const atvOff = services.filter((s) => s.disabledAssertions.includes('Access Token Validator') && !s.assertions.includes('Access Token Validator'));
+  const urlCount = (label: string) => enabled.filter((s) => s.urlIssues.includes(label)).length;
+  const urlChecks = ([
+    [URL_ISSUES.duplicate, (n: number) => `${fmt(n)} enabled APIs share a URL pattern`, 'Two live APIs on the same URL: the gateway can only route to one of them.', 'high'],
+    [URL_ISSUES.empty, (n: number) => `${fmt(n)} enabled APIs have no URL pattern`, 'They can only be reached another way (e.g. SOAP routing), if at all.', 'high'],
+    [URL_ISSUES['no-leading-slash'], (n: number) => `${fmt(n)} URL patterns don't start with /`, 'Requests are matched against a path that always starts with /.', 'mid'],
+    [URL_ISSUES['double-slash'], (n: number) => `${fmt(n)} URL patterns contain //`, 'Probably a typo; clients rarely send an empty path segment.', 'mid'],
+    [URL_ISSUES.whitespace, (n: number) => `${fmt(n)} URL patterns contain whitespace`, 'A space, tab or newline in the path, often a stray one at the start or end. Clients will not match it.', 'high'],
+    [URL_ISSUES['odd-chars'], (n: number) => `${fmt(n)} URL patterns have unusual characters`, 'Quotes, brackets or other characters that need URL-encoding.', 'mid'],
+    [URL_ISSUES['trailing-slash'], (n: number) => `${fmt(n)} URL patterns end with /`, 'Most patterns here have no trailing slash; check these match what clients call.', 'low'],
+    [URL_ISSUES.uppercase, (n: number) => `${fmt(n)} URL patterns use uppercase letters`, 'Matching is case-sensitive, so /Foo and /foo are different APIs.', 'low'],
+  ] as const).flatMap(([label, title, detail, sev]) => { const n = urlCount(label); return n ? [[label, n, title(n), detail, sev] as const] : []; });
   const checks: { title: string; detail: string; n: number; q: Partial<Query>; sev: 'high' | 'mid' | 'low'; icon: string }[] = [
     ...(atvOff.length ? [{
       title: `${fmt(atvOff.length)} APIs have their Access Token Validator switched off`,
@@ -115,6 +126,7 @@ export function Overview({ services, fileName, dispatch, onSearch }: {
       detail: `A token with ${x.likely} probably won't pass this check.`,
       n: x.count, q: { scopes: [x.scope] }, sev: 'high' as const, icon: 'alert',
     })),
+    ...urlChecks.map(([label, n, title, detail, sev]) => ({ title, detail, n, q: { status: 'enabled' as const, urlIssues: [label] }, sev, icon: 'route' })),
     ...(enabledTest ? [{ title: `${fmt(enabledTest)} test APIs are enabled`, detail: 'Name or URL contains test, poc, mock, demo, dummy or sandbox.', n: enabledTest, q: { status: 'enabled' as const, flags: { test: true } }, sev: 'mid' as const, icon: 'flask' }] : []),
     ...(enabledNoScope ? [{ title: `${fmt(enabledNoScope)} enabled APIs skip the scope check`, detail: 'Some are expected, like public or pre-login endpoints.', n: enabledNoScope, q: { status: 'enabled' as const, scopes: [NO_SCOPE] }, sev: 'low' as const, icon: 'key' }] : []),
   ];

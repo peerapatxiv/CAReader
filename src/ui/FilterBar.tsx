@@ -6,7 +6,7 @@ import { Icon, fmt } from './bits';
 
 const FLAG_LABEL: Record<Flag, string> = { test: 'Test API', soap: 'SOAP', internal: 'Internal', tracing: 'Tracing' };
 const flagText = (f: Flag, v: boolean) => (f === 'test' ? (v ? 'Test APIs only' : 'Hiding test APIs') : `${v ? '' : 'not '}${FLAG_LABEL[f]}`);
-const FACET_LABEL: Record<FacetKey, string> = { methods: 'Method', scopes: 'Required scope', generated: 'Generated scope', assertions: 'Assertion', hosts: 'Backend', folders: 'Folder', includes: 'Uses policy' };
+const FACET_LABEL: Record<FacetKey, string> = { methods: 'Method', scopes: 'Required scope', generated: 'Generated scope', assertions: 'Assertion', hosts: 'Backend', folders: 'Folder', includes: 'Uses policy', urlIssues: 'URL issue' };
 
 function Popover({ label, active, children, onClear }: { label: string; active: string | null; children: ComponentChildren; onClear: () => void }) {
   const [open, setOpen] = useState(false);
@@ -66,7 +66,7 @@ export function FilterBar({ query, facets, shown, total, dispatch, onExport }: {
   query: Query; facets: Record<FacetKey | 'status', Facets>; shown: number; total: number; dispatch: (a: Action) => void; onExport: () => void;
 }) {
   const flagSummary = FLAGS.filter((f) => query.flags[f] !== undefined).map((f) => flagText(f, query.flags[f]!));
-  const anyActive = query.status !== 'all' || query.text || flagSummary.length || (['methods', 'scopes', 'generated', 'assertions', 'hosts', 'folders', 'includes'] as FacetKey[]).some((k) => query[k].length);
+  const anyActive = query.status !== 'all' || query.text || flagSummary.length || (['methods', 'scopes', 'generated', 'assertions', 'hosts', 'folders', 'includes', 'urlIssues'] as FacetKey[]).some((k) => query[k].length);
   const setFlag = (f: Flag, v: boolean | undefined) => dispatch({ type: 'setQuery', query: { flags: { ...query.flags, [f]: v } } });
   const statusFacets = facets.status;
   return (
@@ -82,7 +82,7 @@ export function FilterBar({ query, facets, shown, total, dispatch, onExport }: {
           ))}
         </div>
       </Popover>
-      {(['methods', 'scopes', 'generated', 'assertions', 'hosts', 'includes'] as FacetKey[]).map((k) => (
+      {(['methods', 'scopes', 'generated', 'assertions', 'hosts', 'includes', 'urlIssues'] as FacetKey[]).map((k) => (
         <Popover key={k} label={FACET_LABEL[k]} active={summary(query[k])} onClear={() => dispatch({ type: 'setQuery', query: { [k]: [] } })}>
           <FacetList facet={k} counts={facets[k][k]} selected={query[k]} dispatch={dispatch} />
         </Popover>

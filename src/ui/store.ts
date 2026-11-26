@@ -3,7 +3,7 @@ import { emptyQuery, type Query, type Sort, type SortKey } from '../core/query';
 
 export type Tab = 'overview' | 'services';
 export type Theme = 'light' | 'dark' | 'system';
-export type FacetKey = 'methods' | 'hosts' | 'folders' | 'includes' | 'scopes' | 'assertions' | 'generated';
+export type FacetKey = 'methods' | 'hosts' | 'folders' | 'includes' | 'scopes' | 'assertions' | 'generated' | 'urlIssues';
 
 export interface State {
   services: Service[];

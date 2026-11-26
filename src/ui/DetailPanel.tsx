@@ -61,6 +61,7 @@ export function DetailPanel({ s, dispatch }: { s: Service; dispatch: (a: Action)
                 <div>
                   <div class="what">1. Caller hits the gateway <span class="verbs">{s.verbs.map((v) => <MethodBadge key={v} verb={v} />)}</span></div>
                   <div class="val"><RoutePath path={s.urlPattern} /></div>
+                  {s.urlIssues.length > 0 && <div class="url-issues">{s.urlIssues.map((x) => <span key={x} class="flag-tag warn">{x}</span>)}</div>}
                 </div>
                 <CopyButton text={s.urlPattern} label="Copy URL pattern" />
               </li>
